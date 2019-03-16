@@ -5,16 +5,19 @@
     <groupId>net.codingme</groupId>
     <artifactId>elasticsearch-helper</artifactId>
     <name>elasticsearch-helper</name>
+    <version>0.1.1</version>
     <description>elasticsearch-helper</description>
 
     <properties>
         <java.version>1.8</java.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <commons-lang3.version>RELEASE</commons-lang3.version>
-        <fastjson.version>RELEASE</fastjson.version>
+        <commons-lang3.version>3.4</commons-lang3.version>
+        <lombok.version>1.18.6</lombok.version>
         <commons-collections.version>3.2.2</commons-collections.version>
-        <IKAnalyzer5.version>1.0.1</IKAnalyzer5.version>
+        <logback-classic.version>1.0.6</logback-classic.version>
+        <fastjson.version>1.2.31</fastjson.version>
+        <ikanalyzer.version>2012_u6</ikanalyzer.version>
         <elasticsearch.version>5.6.4</elasticsearch.version>
     </properties>
 
@@ -24,20 +27,20 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-            <version>RELEASE</version>
+            <version>${lombok.version}</version>
         </dependency>
 
         <!-- 添加日志框架支持 -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.0.6</version>
+            <version>${logback-classic.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.xd</groupId>
-            <artifactId>IKAnalyzer5</artifactId>
-            <version>${IKAnalyzer5.version}</version>
+            <groupId>com.janeluo</groupId>
+            <artifactId>ikanalyzer</artifactId>
+            <version>${ikanalyzer.version}</version>
         </dependency>
 
         <dependency>

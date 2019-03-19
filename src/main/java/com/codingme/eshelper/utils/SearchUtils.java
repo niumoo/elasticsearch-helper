@@ -3,7 +3,6 @@ package com.codingme.eshelper.utils;
 import com.codingme.eshelper.pojo.SearchResult;
 import com.codingme.eshelper.constant.SearchConstant;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
@@ -163,8 +162,7 @@ public class SearchUtils {
         searchRequest.source(searchSourceBuilder);
         searchRequest.searchType(SearchType.QUERY_THEN_FETCH);
 
-        log.info("【查询语句】query={}", searchRequest.source().toString().replaceAll("\r|\n", StringUtils.EMPTY)
-                .replace(StringUtils.SPACE, StringUtils.EMPTY));
+        log.info("【查询语句】query={}", StringUtils.compressJson(searchRequest.source().toString()));
         return searchRequest;
     }
 

@@ -11,9 +11,9 @@ public class SearchConstant {
     /**
      * 聚合查询第一层名称
      */
-    public static String AGGREGATIONS_OUTER = "outer_agg";
+    public static String AGGREGATIONS_OUTER = "_outer_agg";
     /**
      * 子聚合第一层名称
      */
-    public static String AGGREGATIONS_INNER = "inner_agg";
+    public static String AGGREGATIONS_INNER = "_inner_agg";
 }

@@ -105,10 +105,10 @@ public class SearchConstruct {
         // 聚合字段
         if (CollectionUtils.isNotEmpty(aggregationList)) {
             TermsAggregationBuilder aggregation =
-                AggregationBuilders.terms(SearchConstant.AGGREGATIONS_OUTER).field(aggregationList.get(0));
+                    AggregationBuilders.terms(SearchConstant.AGGREGATIONS_OUTER).field(aggregationList.get(0));
             if (aggregationList.size() > 1) {
                 aggregation.subAggregation(
-                    AggregationBuilders.avg(SearchConstant.AGGREGATIONS_INNER).field(aggregationList.get(1)));
+                        AggregationBuilders.terms(SearchConstant.AGGREGATIONS_INNER).field(aggregationList.get(1)));
             }
             aggregation.size(pageSize);
             searchSourceBuilder.aggregation(aggregation);
@@ -149,23 +149,18 @@ public class SearchConstruct {
 
     /**
      * 范围查询
-     * 
-     * @param name
-     *            字段名称
-     * @param lowerTerm
-     *            开始值
-     * @param upperTerm
-     *            结束值
-     * @param includeLower
-     *            是否包含开始值
-     * @param includeUpper
-     *            是否包含结束值
+     *
+     * @param name         字段名称
+     * @param lowerTerm    开始值
+     * @param upperTerm    结束值
+     * @param includeLower 是否包含开始值
+     * @param includeUpper 是否包含结束值
      * @return
      */
     public SearchConstruct range(String name, String lowerTerm, String upperTerm, boolean includeLower,
-        boolean includeUpper) {
+                                 boolean includeUpper) {
         RangeQueryBuilder rangeQueryBuilder =
-            QueryBuilders.rangeQuery(name).from(lowerTerm).to(upperTerm).includeLower(true).includeUpper(true);
+                QueryBuilders.rangeQuery(name).from(lowerTerm).to(upperTerm).includeLower(true).includeUpper(true);
         rangeSet.add(rangeQueryBuilder);
         return this;
     }

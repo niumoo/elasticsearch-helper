@@ -26,7 +26,7 @@ public class SearchUtils {
 
     /**
      * 查询列表
-     * 
+     *
      * @param searchConstruct
      * @return
      * @throws IOException
@@ -41,7 +41,7 @@ public class SearchUtils {
 
     /**
      * 查询总数
-     * 
+     *
      * @param searchConstruct
      * @return
      * @throws IOException
@@ -58,7 +58,7 @@ public class SearchUtils {
 
     /**
      * 查询聚合
-     * 
+     *
      * @param searchConstruct
      * @return
      */
@@ -74,9 +74,19 @@ public class SearchUtils {
         Aggregations aggregations = searchResponse.getAggregations();
         Terms byCompanyAggregation = aggregations.get(SearchConstant.AGGREGATIONS_OUTER);
         for (Terms.Bucket outBucket : byCompanyAggregation.getBuckets()) {
-            Map<String, Object> sourceAsMap = new LinkedHashMap<>();
-            sourceAsMap.put(outBucket.getKeyAsString(), outBucket.getDocCount());
-            resultList.add(sourceAsMap);
+            Map<String, Object> outerMap = new LinkedHashMap<>();
+            outerMap.put(outBucket.getKeyAsString(), outBucket.getDocCount());
+            // 子聚合
+            if (searchConstruct.getAggregationList().size() > 1) {
+                Aggregations subAggs = outBucket.getAggregations();
+                Terms subAgg = subAggs.get(SearchConstant.AGGREGATIONS_INNER);
+                Map<String, Object> innerMap = new LinkedHashMap<>();
+                for (Terms.Bucket innerBucket : subAgg.getBuckets()) {
+                    innerMap.put(innerBucket.getKeyAsString(), innerBucket.getDocCount());
+                }
+                outerMap.put(SearchConstant.AGGREGATIONS_INNER, innerMap);
+            }
+            resultList.add(outerMap);
         }
         searchResult.setResultList(resultList);
         return searchResult;
@@ -84,7 +94,7 @@ public class SearchUtils {
 
     /**
      * 查询游标
-     * 
+     *
      * @param searchConstruct
      * @return
      */
@@ -135,7 +145,7 @@ public class SearchUtils {
 
     /**
      * 构建查询条件
-     * 
+     *
      * @param searchConstruct
      * @return
      */
@@ -154,13 +164,13 @@ public class SearchUtils {
         searchRequest.searchType(SearchType.QUERY_THEN_FETCH);
 
         log.info("【查询语句】query={}", searchRequest.source().toString().replaceAll("\r|\n", StringUtils.EMPTY)
-            .replace(StringUtils.SPACE, StringUtils.EMPTY));
+                .replace(StringUtils.SPACE, StringUtils.EMPTY));
         return searchRequest;
     }
 
     /**
      * 构建返回视图结果
-     * 
+     *
      * @param searchResponse
      * @param searchConstruct
      * @return
@@ -187,7 +197,7 @@ public class SearchUtils {
 
     /**
      * 构建返回结果
-     * 
+     *
      * @param searchResponse
      * @return
      */

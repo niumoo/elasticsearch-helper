@@ -6,6 +6,11 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.search.Query;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -42,7 +47,7 @@ public class SearchConstruct {
     /**
      * RAGNE 关系
      */
-    private Set<RangeQueryBuilder> rangeSet = new HashSet<RangeQueryBuilder>();
+    private Set<QueryBuilder> rangeSet = new HashSet<QueryBuilder>();
 
     /**
      * 默认排序
@@ -148,7 +153,7 @@ public class SearchConstruct {
     }
 
     /**
-     * 范围查询
+     * 字符串范围查询
      *
      * @param name         字段名称
      * @param lowerTerm    开始值
@@ -164,4 +169,43 @@ public class SearchConstruct {
         rangeSet.add(rangeQueryBuilder);
         return this;
     }
+
+    /**
+     * 数字范围查询
+     *
+     * @param name
+     * @param lowerTerm
+     * @param upperTerm
+     * @param includeLower
+     * @param includeUpper
+     * @return
+     */
+    public SearchConstruct range(String name, Number lowerTerm, Number upperTerm, boolean includeLower,
+                                 boolean includeUpper) {
+        Query rangeQuery = null;
+        Number temp = lowerTerm == null ? upperTerm : lowerTerm;
+        if (temp instanceof Integer) {
+            Integer start = lowerTerm == null ? null : Integer.valueOf(lowerTerm.intValue());
+            Integer end = upperTerm == null ? null : Integer.valueOf(upperTerm.intValue());
+            rangeQuery = IntPoint.newRangeQuery(name, start, end);
+        }
+        if (temp instanceof Long) {
+            Long start = lowerTerm == null ? null : Long.valueOf(lowerTerm.longValue());
+            Long end = upperTerm == null ? null : Long.valueOf(upperTerm.longValue());
+            rangeQuery = LongPoint.newRangeQuery(name, start, end);
+        }
+        if (temp instanceof Float) {
+            Float start = lowerTerm == null ? null : Float.valueOf(lowerTerm.floatValue());
+            Float end = upperTerm == null ? null : Float.valueOf(upperTerm.floatValue());
+            rangeQuery = FloatPoint.newRangeQuery(name, start, end);
+        }
+        if (temp instanceof Double) {
+            Double start = lowerTerm == null ? null : Double.valueOf(lowerTerm.doubleValue());
+            Double end = upperTerm == null ? null : Double.valueOf(upperTerm.doubleValue());
+            rangeQuery = DoublePoint.newRangeQuery(name, start, end);
+        }
+        rangeSet.add(new QueryStringQueryBuilder(rangeQuery.toString()));
+        return this;
+    }
+
 }

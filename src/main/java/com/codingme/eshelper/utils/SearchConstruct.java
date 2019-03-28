@@ -1,18 +1,18 @@
 package com.codingme.eshelper.utils;
 
+
 import com.codingme.eshelper.constant.SearchConstant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.document.DoublePoint;
-import org.apache.lucene.document.FloatPoint;
-import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.document.LongPoint;
-import org.apache.lucene.search.Query;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 @Setter
 @Getter
 @ToString
+@Slf4j
 public class SearchConstruct {
 
     /**
@@ -47,12 +48,12 @@ public class SearchConstruct {
     /**
      * RAGNE 关系
      */
-    private Set<QueryBuilder> rangeSet = new HashSet<QueryBuilder>();
+    private Set<RangeQueryBuilder> rangeSet = new HashSet<RangeQueryBuilder>();
 
     /**
      * 默认排序
      */
-    public FieldSortBuilder sortBuilder = new FieldSortBuilder("id").order(SortOrder.ASC);
+    public FieldSortBuilder sortBuilder;
 
     /**
      * 被查索引
@@ -77,7 +78,7 @@ public class SearchConstruct {
     /**
      * 返回字段
      */
-    private List<String> sourceField = Arrays.asList("_id");
+    private List<String> sourceField = new ArrayList<>();
 
     /**
      * 聚合字段
@@ -113,7 +114,7 @@ public class SearchConstruct {
                     AggregationBuilders.terms(SearchConstant.AGGREGATIONS_OUTER).field(aggregationList.get(0));
             if (aggregationList.size() > 1) {
                 aggregation.subAggregation(
-                        AggregationBuilders.terms(SearchConstant.AGGREGATIONS_INNER).field(aggregationList.get(1)));
+                        AggregationBuilders.avg(SearchConstant.AGGREGATIONS_INNER).field(aggregationList.get(1)));
             }
             aggregation.size(pageSize);
             searchSourceBuilder.aggregation(aggregation);
@@ -127,7 +128,9 @@ public class SearchConstruct {
             searchSourceBuilder.fetchSource(sourceFieldsArr, null);
         }
         searchSourceBuilder.query(boolQuery);
-        searchSourceBuilder.sort(sortBuilder);
+        if (sortBuilder != null) {
+            searchSourceBuilder.sort(sortBuilder);
+        }
         searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         return searchSourceBuilder;
     }
@@ -153,59 +156,60 @@ public class SearchConstruct {
     }
 
     /**
-     * 字符串范围查询
+     * 范围查询
      *
-     * @param name         字段名称
-     * @param lowerTerm    开始值
-     * @param upperTerm    结束值
+     * @param field        字段名称
+     * @param lower        开始值
+     * @param upper        结束值
      * @param includeLower 是否包含开始值
      * @param includeUpper 是否包含结束值
      * @return
      */
-    public SearchConstruct range(String name, String lowerTerm, String upperTerm, boolean includeLower,
-                                 boolean includeUpper) {
-        RangeQueryBuilder rangeQueryBuilder =
-                QueryBuilders.rangeQuery(name).from(lowerTerm).to(upperTerm).includeLower(true).includeUpper(true);
+    public SearchConstruct range(String field, Object lower, Object upper, boolean includeLower, boolean includeUpper) {
+        if (lower == null && upper == null) {
+            return this;
+        }
+        RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(field).includeLower(includeLower).includeUpper(includeUpper);
+        if (lower != null) {
+            rangeQueryBuilder.from(lower);
+        }
+        if (upper != null) {
+            rangeQueryBuilder.to(upper);
+        }
         rangeSet.add(rangeQueryBuilder);
+        log.info("【范围查询】范围参数设置完成,field={},lower={},upper=" + upper, field, lower);
         return this;
     }
 
     /**
-     * 数字范围查询
+     * 范围查询
      *
-     * @param name
-     * @param lowerTerm
-     * @param upperTerm
-     * @param includeLower
-     * @param includeUpper
+     * @param name  字段名称
+     * @param lower 开始值
+     * @param upper 结束值
      * @return
      */
-    public SearchConstruct range(String name, Number lowerTerm, Number upperTerm, boolean includeLower,
-                                 boolean includeUpper) {
-        Query rangeQuery = null;
-        Number temp = lowerTerm == null ? upperTerm : lowerTerm;
-        if (temp instanceof Integer) {
-            Integer start = lowerTerm == null ? null : Integer.valueOf(lowerTerm.intValue());
-            Integer end = upperTerm == null ? null : Integer.valueOf(upperTerm.intValue());
-            rangeQuery = IntPoint.newRangeQuery(name, start, end);
-        }
-        if (temp instanceof Long) {
-            Long start = lowerTerm == null ? null : Long.valueOf(lowerTerm.longValue());
-            Long end = upperTerm == null ? null : Long.valueOf(upperTerm.longValue());
-            rangeQuery = LongPoint.newRangeQuery(name, start, end);
-        }
-        if (temp instanceof Float) {
-            Float start = lowerTerm == null ? null : Float.valueOf(lowerTerm.floatValue());
-            Float end = upperTerm == null ? null : Float.valueOf(upperTerm.floatValue());
-            rangeQuery = FloatPoint.newRangeQuery(name, start, end);
-        }
-        if (temp instanceof Double) {
-            Double start = lowerTerm == null ? null : Double.valueOf(lowerTerm.doubleValue());
-            Double end = upperTerm == null ? null : Double.valueOf(upperTerm.doubleValue());
-            rangeQuery = DoublePoint.newRangeQuery(name, start, end);
-        }
-        rangeSet.add(new QueryStringQueryBuilder(rangeQuery.toString()));
-        return this;
+    public SearchConstruct range(String name, Object lower, Object upper) {
+        return range(name, lower, upper, true, true);
     }
 
+    /**
+     * 自定义排序
+     *
+     * @param field 排序字段
+     * @param desc  是否降序
+     */
+    public SearchConstruct sort(String field, boolean desc) {
+        if (StringUtils.isEmpty(field)) {
+            log.info("【设置排序】排序字段为空");
+            return this;
+        }
+        sortBuilder = new FieldSortBuilder(field);
+        if (desc) {
+            sortBuilder.order(SortOrder.DESC);
+        } else {
+            sortBuilder.order(SortOrder.ASC);
+        }
+        return this;
+    }
 }

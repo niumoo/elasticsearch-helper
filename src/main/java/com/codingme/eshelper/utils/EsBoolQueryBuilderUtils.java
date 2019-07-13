@@ -15,7 +15,7 @@ import java.util.List;
  * @Author niujinpeng
  * @Date 2019/7/9 16:03
  */
-public class BoolQueryBuilderUtils {
+public class EsBoolQueryBuilderUtils {
     /**
      * 判断一个布尔 query 是否为空
      *

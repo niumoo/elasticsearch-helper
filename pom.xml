@@ -12,7 +12,7 @@
         <java.version>1.8</java.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <commons-lang3.version>3.4</commons-lang3.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
         <lombok.version>1.18.6</lombok.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <logback-classic.version>1.0.6</logback-classic.version>
@@ -20,6 +20,20 @@
         <ikanalyzer.version>2012_u6</ikanalyzer.version>
         <elasticsearch.version>5.6.4</elasticsearch.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>aliyun maven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
 
@@ -58,7 +72,7 @@
         </dependency>
 
         <dependency>
-            <groupId>commons-lang3</groupId>
+            <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
         </dependency>

@@ -15,33 +15,36 @@ import org.wltea.analyzer.core.Lexeme;
  * @author niujinpeng
  * @date 2018年6月20日下午11:11:42
  */
-public final class IKTokenizer6x extends Tokenizer {
+public final class IkTokenizer6x extends Tokenizer {
 
-	// IK 分词器实现
-	private IKSegmenter _IKImplement;
-	// 词元文本属性
+	/** IK 分词器实现 */
+	private IKSegmenter ikImplement;
+	/** 词元文本属性 */
 	private CharTermAttribute termAtt;
-	// 词元位移属性
+	/** 词元位移属性 */
 	private OffsetAttribute offsetAttribute;
-	// 词元分类属性
+	/** 词元分类属性 */
 	private TypeAttribute typeAtt;
-	// 记录最后一个词元的结束位置
+	/** 记录最后一个词元的结束位置 */
 	private int endPosition;
 
-	// Lucene 6.X Tokenizer 适配器类构造函数，实现最新的Tokenizer接口
-	public IKTokenizer6x(boolean useSmart) {
+	/**
+	 * Lucene 6.X Tokenizer 适配器类构造函数，实现最新的Tokenizer接口
+	 * @param useSmart
+	 */
+	public IkTokenizer6x(boolean useSmart) {
 		super();
 		offsetAttribute = addAttribute(OffsetAttribute.class);
 		termAtt = addAttribute(CharTermAttribute.class);
 		typeAtt = addAttribute(TypeAttribute.class);
-		_IKImplement = new IKSegmenter(input, useSmart);
+		ikImplement = new IKSegmenter(input, useSmart);
 	}
 
 	@Override
 	public boolean incrementToken() throws IOException {
 		// 清除所有的词元属性
 		clearAttributes();
-		Lexeme nextLexeme = _IKImplement.next();
+		Lexeme nextLexeme = ikImplement.next();
 		if (nextLexeme != null) {
 			// 将Lexeme转成Attributes
 			// 设置词元文本
@@ -64,7 +67,7 @@ public final class IKTokenizer6x extends Tokenizer {
 	@Override
 	public void reset() throws IOException {
 		super.reset();
-		_IKImplement.reset(input);
+		ikImplement.reset(input);
 	}
 	
 	@Override

@@ -21,7 +21,7 @@ import org.wltea.analyzer.cfg.Configuration;
 import org.wltea.analyzer.cfg.DefaultConfig;
 import org.wltea.analyzer.dic.Dictionary;
 
-import com.codingme.eshelper.ik.IKAnalyzer6x;
+import com.codingme.eshelper.ik.IkAnalyzer6x;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -89,7 +89,7 @@ public class LuceneHighlighter {
         Highlighter highlighter = new Highlighter(simpleHTMLFormatter, queryScorer);
         highlighter.setTextFragmenter(simpleFragmenter);
 
-        Analyzer analyzer = new IKAnalyzer6x();
+        Analyzer analyzer = new IkAnalyzer6x();
         TokenStream tokenStream = analyzer.tokenStream("", new StringReader(content));
         return highlighter.getBestFragment(tokenStream, content);
     }

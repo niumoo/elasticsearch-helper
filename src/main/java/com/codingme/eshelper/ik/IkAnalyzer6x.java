@@ -8,7 +8,7 @@ import org.apache.lucene.analysis.Analyzer;
  * @author niujinpeng
  * @date 2018年6月21日上午9:58:50
  */
-public class IKAnalyzer6x extends Analyzer {
+public class IkAnalyzer6x extends Analyzer {
 
     private boolean useSmart;
 
@@ -23,7 +23,7 @@ public class IKAnalyzer6x extends Analyzer {
     /**
      * IK分词器Lucene analyzer接口实现类 ，默认细粒度切分
      */
-    public IKAnalyzer6x() {
+    public IkAnalyzer6x() {
         this(false);
     }
 
@@ -31,7 +31,7 @@ public class IKAnalyzer6x extends Analyzer {
      * IK分词器Lucene analyzer接口实现类，当为true的时候，分词器进行智能切分
      * @param useSmart
      */
-    public IKAnalyzer6x(boolean useSmart) {
+    public IkAnalyzer6x(boolean useSmart) {
         super();
         this.useSmart = useSmart;
     }
@@ -44,7 +44,7 @@ public class IKAnalyzer6x extends Analyzer {
      */
     @Override
     protected TokenStreamComponents createComponents(String fileName) {
-        IKTokenizer6x ikAnalyzer6x = new IKTokenizer6x(this.useSmart);
+        IkTokenizer6x ikAnalyzer6x = new IkTokenizer6x(this.useSmart);
         return new TokenStreamComponents(ikAnalyzer6x);
     }
 

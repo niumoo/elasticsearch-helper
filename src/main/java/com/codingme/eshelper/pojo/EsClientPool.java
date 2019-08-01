@@ -3,8 +3,6 @@ package com.codingme.eshelper.pojo;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.codingme.eshelper.constant.EsConstant;
-import com.codingme.eshelper.utils.EsCharUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
@@ -15,6 +13,8 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 
 import com.alibaba.fastjson.JSON;
+import com.codingme.eshelper.constant.EsConstant;
+import com.codingme.eshelper.utils.EsCharUtils;
 
 import lombok.extern.slf4j.Slf4j;
 

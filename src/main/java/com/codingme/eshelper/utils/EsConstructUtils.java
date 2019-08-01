@@ -16,6 +16,7 @@ import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregator;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.cardinality.CardinalityAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.stats.StatsAggregationBuilder;
@@ -135,8 +136,8 @@ public class EsConstructUtils {
 		searchSourceBuilder.timeout(TimeValue.timeValueMillis(EsConstant.SEARCH_TIME_OUT));
 		Integer esPage = esConstruct.getEsPage();
 		searchSourceBuilder.from(esPage > 1 ? esPage : esPage - 1).size(esConstruct.getPageSize());
-		searchSourceBuilder = handleBoolQuery(esConstruct, searchSourceBuilder);
-		searchSourceBuilder = handleAggs(esConstruct, searchSourceBuilder);
+		handleBoolQuery(esConstruct, searchSourceBuilder);
+		handleAggs(esConstruct, searchSourceBuilder);
 		// 返回字段
 		if (CollectionUtils.isNotEmpty(esConstruct.getSourceField())) {
 			searchSourceBuilder.storedFields(esConstruct.getSourceField());
@@ -165,6 +166,8 @@ public class EsConstructUtils {
 			return searchSourceBuilder;
 		}
 		if (aggregationBuilderOuter != null && !statsAggs && !cardinalityAggs) {
+			aggregationBuilderOuter.executionHint("map");
+			aggregationBuilderOuter.collectMode(Aggregator.SubAggCollectionMode.BREADTH_FIRST);
 			if (topHitsAggregationBuilder != null) {
 				aggregationBuilderOuter.subAggregation(topHitsAggregationBuilder);
 			}
@@ -198,9 +201,9 @@ public class EsConstructUtils {
 		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
 		// AND,OR MUST KEYWORD
-		esConstruct.getMustQueryStringSet().forEach(queryString -> boolQuery.must(queryString));
+		esConstruct.getMustQueryStringSet().forEach(boolQuery::must);
 		// AND,OR MUST_NOT KEYWORD
-		esConstruct.getMustNotQueryStringSet().forEach(queryString -> boolQuery.mustNot(queryString));
+		esConstruct.getMustNotQueryStringSet().forEach(boolQuery::mustNot);
 
 		// MUST
 		esConstruct.getMustMap().forEach((key, valueList) -> {
@@ -215,18 +218,18 @@ public class EsConstructUtils {
 		});
 
 		// MUST RANGE
-		esConstruct.getMustRangeSet().forEach(rangeQueryBuilder -> boolQuery.must(rangeQueryBuilder));
+		esConstruct.getMustRangeSet().forEach(boolQuery::must);
 
 		// MUST NOT RANGE
-		esConstruct.getMustNotRangeSet().forEach(rangeQueryBuilder -> boolQuery.mustNot(rangeQueryBuilder));
+		esConstruct.getMustNotRangeSet().forEach(boolQuery::mustNot);
 
 		// 扩展 Query ,会拼接到 MUST
-		esConstruct.getQueryBuildersSet().forEach(queryBuilder -> boolQuery.must(queryBuilder));
+		esConstruct.getQueryBuildersSet().forEach(boolQuery::must);
 
 		// 扩展 Query ,会拼接到 SHOULD
-		esConstruct.getShouldBuilderSet().forEach(queryBuilder -> boolQuery.should(queryBuilder));
+		esConstruct.getShouldBuilderSet().forEach(boolQuery::should);
 
-		searchSourceBuilder.query(QueryBuilders.boolQuery().filter(boolQuery));
+		searchSourceBuilder.query(boolQuery);
 		return searchSourceBuilder;
 	}
 

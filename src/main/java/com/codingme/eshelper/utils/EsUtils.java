@@ -1,11 +1,7 @@
 package com.codingme.eshelper.utils;
 
-import com.alibaba.fastjson.JSON;
-import com.codingme.eshelper.constant.EsConstant;
-import com.codingme.eshelper.pojo.EsClientPool;
-import com.codingme.eshelper.pojo.EsConstruct;
-import com.codingme.eshelper.pojo.EsResult;
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +38,13 @@ import org.elasticsearch.search.aggregations.metrics.tophits.ParsedTopHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.threadpool.ThreadPool;
 
-import java.util.*;
+import com.alibaba.fastjson.JSON;
+import com.codingme.eshelper.constant.EsConstant;
+import com.codingme.eshelper.pojo.EsClientPool;
+import com.codingme.eshelper.pojo.EsConstruct;
+import com.codingme.eshelper.pojo.EsResult;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>

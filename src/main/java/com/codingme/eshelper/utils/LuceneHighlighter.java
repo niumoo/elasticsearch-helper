@@ -16,7 +16,6 @@ import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
-import org.junit.Test;
 import org.wltea.analyzer.cfg.Configuration;
 import org.wltea.analyzer.cfg.DefaultConfig;
 import org.wltea.analyzer.dic.Dictionary;
@@ -82,8 +81,8 @@ public class LuceneHighlighter {
             contentLength = LuceneHighlighter.CONTENT_LENGTH;
         }
         SimpleFragmenter simpleFragmenter = new SimpleFragmenter(contentLength);
-        SimpleHTMLFormatter simpleHTMLFormatter = new SimpleHTMLFormatter(PREFIX_TAG, SUFFIX_TAG);
-        Highlighter highlighter = new Highlighter(simpleHTMLFormatter, queryScorer);
+        SimpleHTMLFormatter simpleHtmlFormatter = new SimpleHTMLFormatter(PREFIX_TAG, SUFFIX_TAG);
+        Highlighter highlighter = new Highlighter(simpleHtmlFormatter, queryScorer);
         highlighter.setTextFragmenter(simpleFragmenter);
 
         Analyzer analyzer = new IkAnalyzer6x();

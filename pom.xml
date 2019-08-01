@@ -37,6 +37,7 @@
 
     <dependencies>
 
+        <!-- Lombok 便捷注解支持 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -51,6 +52,7 @@
             <version>${logback-classic.version}</version>
         </dependency>
 
+        <!-- IK 分词器 -->
         <dependency>
             <groupId>com.janeluo</groupId>
             <artifactId>ikanalyzer</artifactId>
@@ -71,6 +73,7 @@
             </exclusions>
         </dependency>
 
+        <!-- 通用工具类 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -82,6 +85,7 @@
             <version>${commons-collections.version}</version>
         </dependency>
 
+        <!-- 阿里 json fastJson -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>

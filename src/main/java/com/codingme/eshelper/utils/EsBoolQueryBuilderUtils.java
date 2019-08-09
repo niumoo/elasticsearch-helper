@@ -2,10 +2,7 @@ package com.codingme.eshelper.utils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.index.query.TermsQueryBuilder;
+import org.elasticsearch.index.query.*;
 
 import java.util.List;
 
@@ -17,6 +14,16 @@ import java.util.List;
  * @Date 2019/7/9 16:03
  */
 public class EsBoolQueryBuilderUtils {
+
+    /**
+     * 获取一个BoolQuery
+     *
+     * @return
+     */
+    public static BoolQueryBuilder create() {
+        return QueryBuilders.boolQuery();
+    }
+
     /**
      * 判断一个布尔 query 是否为空
      *
@@ -27,16 +34,13 @@ public class EsBoolQueryBuilderUtils {
         if (queryBuilder == null) {
             return true;
         }
-        List<QueryBuilder> mustList = queryBuilder.must();
-        List<QueryBuilder> filterList = queryBuilder.filter();
-        List<QueryBuilder> mustNotList = queryBuilder.mustNot();
-        List<QueryBuilder> shouldList = queryBuilder.should();
-        if (CollectionUtils.isEmpty(mustList) && CollectionUtils.isEmpty(filterList)
-            && CollectionUtils.isEmpty(mustNotList) && CollectionUtils.isEmpty(shouldList)) {
-            return true;
-        }
-        return false;
+        return !queryBuilder.hasClauses();
     }
+
+    public static boolean isNotEmpty(BoolQueryBuilder queryBuilder) {
+        return !isEmpty(queryBuilder);
+    }
+
 
     public static BoolQueryBuilder must(BoolQueryBuilder queryBuilder, BoolQueryBuilder subQuery) {
         if (!isEmpty(subQuery) && queryBuilder != null) {

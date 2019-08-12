@@ -63,10 +63,6 @@ public class EsConstant {
      */
     public static String HITS_TYPE = "_type";
 
-    /**
-     * 重试超时时间
-     */
-    public static int RETRY_TIME_OUT = 2 * 60 * 1000;
 
     /**
      * 游标生命时间
@@ -74,18 +70,13 @@ public class EsConstant {
     public static long SCROLL_KEEP_ALIVE_TIME = 3 * 60 * 1000;
 
     /**
-     * Es 查询超时时间
-     */
-    public static int SEARCH_TIME_OUT = 3 * 60 * 1000;
-
-    /**
      * 业务ID
      */
     public static String SERVICE_ID = "id";
 
     /**
-     * HTTP 查询超时时间
+     * Es 查询超时时间
      */
-    public static int SOCKET_TIME_OUT = 1 * 60 * 1000;
+    public static int SEARCH_TIME_OUT = 3 * 60 * 1000;
 
 }

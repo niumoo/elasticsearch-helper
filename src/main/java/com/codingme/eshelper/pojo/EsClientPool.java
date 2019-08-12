@@ -29,6 +29,20 @@ import lombok.extern.slf4j.Slf4j;
 public class EsClientPool {
 
     /**
+     * 重试超时时间
+     */
+    public static int RETRY_TIME_OUT = 2 * 60 * 1000;
+
+    /**
+     * HTTP 查询超时时间
+     */
+    public static int SOCKET_TIME_OUT = 1 * 60 * 1000;
+
+    public static int MAX_CONN_PRE_ROUTE = 16;
+
+    public static int MAX_CONN_TOTAL = 32;
+
+    /**
      * Rest Client map
      */
     private static Map<Integer, RestClient> restClientMap = new ConcurrentHashMap<>();
@@ -82,15 +96,15 @@ public class EsClientPool {
             RestClientBuilder restClientBuilder = RestClient.builder(httpHost);
             restClientBuilder.setRequestConfigCallback(requestConfigBuilder -> {
                 requestConfigBuilder.setConnectTimeout(connTimeOut == null ? EsConstant.CONN_TIME_OUT : connTimeOut)
-                    .setSocketTimeout(socketTimeOut == null ? EsConstant.SOCKET_TIME_OUT : socketTimeOut)
+                    .setSocketTimeout(socketTimeOut == null ? SOCKET_TIME_OUT : socketTimeOut)
                     .setConnectionRequestTimeout(0);
                 return requestConfigBuilder;
             });
             RestClient restClient = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
-                httpClientBuilder.setMaxConnPerRoute(maxConnPerRoute == null ? 16 : maxConnPerRoute);
-                httpClientBuilder.setMaxConnTotal(maxConnTotal == null ? 32 : maxConnTotal);
+                httpClientBuilder.setMaxConnPerRoute(maxConnPerRoute == null ? MAX_CONN_PRE_ROUTE : maxConnPerRoute);
+                httpClientBuilder.setMaxConnTotal(maxConnTotal == null ? MAX_CONN_TOTAL : maxConnTotal);
                 return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            }).setMaxRetryTimeoutMillis(socketTimeOut == null ? EsConstant.RETRY_TIME_OUT : socketTimeOut).build();
+            }).setMaxRetryTimeoutMillis(socketTimeOut == null ? RETRY_TIME_OUT : socketTimeOut).build();
             RestHighLevelClient highLevelClient = new RestHighLevelClient(restClient);
             restHighLevelClientMap.put(clientId, highLevelClient);
             restClientMap.put(clientId, restClient);
@@ -98,6 +112,10 @@ public class EsClientPool {
                 httpHost.getPort());
         }
         return restHighLevelClientMap.get(clientId);
+    }
+
+    public static RestHighLevelClient put(Integer clientId, String host, Integer port) throws Exception {
+        return put(clientId, host, port, null, null, null, null);
     }
 
     public static boolean contains(Integer clientId) throws Exception {

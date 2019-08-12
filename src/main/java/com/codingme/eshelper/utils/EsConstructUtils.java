@@ -218,7 +218,7 @@ public class EsConstructUtils {
 
         // MUST_NOT
         esConstruct.getMustNotMap().forEach((key, valueList) -> {
-        	valueList.forEach((value) -> boolQuery.mustNot(new TermQueryBuilder(key, value)));
+            valueList.forEach((value) -> boolQuery.mustNot(new TermQueryBuilder(key, value)));
         });
 
         // MUST RANGE

@@ -56,6 +56,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EsUtils {
 
+    private static String HTTP_STATUS_SUCCESS = "OK";
+
     /**
      * 检查索引是否存在
      *
@@ -63,17 +65,15 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public boolean checkIndexExist(EsConstruct esConstruct) throws Exception {
+    public static boolean checkIndexExist(EsConstruct esConstruct) throws Exception {
         Integer clientId = esConstruct.getClientId();
         List<String> indexList = esConstruct.getIndexList();
         RestClient restClient = EsClientPool.getRestClient(clientId);
         boolean exist = true;
         for (String index : indexList) {
-            if (StringUtils.contains(index, ":")) {
-                index = java.net.URLEncoder.encode(index, "UTF-8");
-            }
+            index = java.net.URLEncoder.encode(index, "UTF-8");
             Response response = restClient.performRequest("HEAD", "/" + index);
-            exist = exist && StringUtils.equals(response.getStatusLine().getReasonPhrase(), "OK");
+            exist = exist && StringUtils.equals(response.getStatusLine().getReasonPhrase(), HTTP_STATUS_SUCCESS);
         }
         return exist;
     }
@@ -85,7 +85,7 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public EsResult deleteById(EsConstruct esConstruct) throws Exception {
+    public static EsResult deleteById(EsConstruct esConstruct) throws Exception {
         String transactionId = esConstruct.getTransactionId();
         Integer clientId = esConstruct.getClientId();
         String type = esConstruct.getIndexType();
@@ -94,34 +94,32 @@ public class EsUtils {
         EsResult updateResult = new EsResult();
         if (clientId == null || CollectionUtils.isEmpty(indexList) || StringUtils.isEmpty(type)
             || StringUtils.isEmpty(id)) {
-            EsCharUtils.error("[" + transactionId + "]【删除】删除失败,要删除的文档信息不完整,index=[{}],type=[{}],id=[{}]", indexList,
-                type, id);
+            EsCharUtils.error("[{}]【删除】删除失败,要删除的文档信息不完整,index=[{}],type=[{}],id=[{}]", transactionId, indexList, type,
+                id);
             return updateResult;
         }
         String index = indexList.get(0);
-        if (StringUtils.contains(index, ":")) {
-            index = java.net.URLEncoder.encode(index, "UTF-8");
-        }
+        index = java.net.URLEncoder.encode(index, "UTF-8");
         updateResult.setIndexList(Arrays.asList(index));
         updateResult.setClientId(clientId);
         DeleteRequest request = new DeleteRequest(index, type, id);
         DeleteResponse deleteResponse = EsClientPool.getRestHighClient(clientId).delete(request);
         // 删除结果处理
         if (deleteResponse.getResult() == DocWriteResponse.Result.NOT_FOUND) {
-            EsCharUtils.error("[" + transactionId + "]【删除】删除失败,文档未找到,index=[{}],type=[{}],id=[{}]", index, type, id);
+            EsCharUtils.error("[{}]【删除】删除失败,文档未找到,index=[{}],type=[{}],id=[{}]", transactionId, index, type, id);
             return updateResult;
         }
         ReplicationResponse.ShardInfo shardInfo = deleteResponse.getShardInfo();
         if (shardInfo.getTotal() != shardInfo.getSuccessful()) {
-            EsCharUtils.error("[" + transactionId + "]【删除】删除失败,分片总量:[{}],成功删除分片总量:[{}]", shardInfo.getTotal(),
+            EsCharUtils.error("[{}]【删除】删除失败,分片总量:[{}],成功删除分片总量:[{}]", transactionId, shardInfo.getTotal(),
                 shardInfo.getSuccessful());
             return updateResult;
         }
         if (shardInfo.getFailed() > 0) {
-            EsCharUtils.error("[" + transactionId + "]【删除】删除失败,要删除的文档,index=[{}],type=[{}],id=[{}]", index, type, id);
+            EsCharUtils.error("[{}]【删除】删除失败,要删除的文档,index=[{}],type=[{}],id=[{}]", transactionId, index, type, id);
             for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
                 String reason = failure.reason();
-                EsCharUtils.error("[" + transactionId + "]【删除】删除失败,失败原因:[{}]", reason);
+                EsCharUtils.error("[{}]【删除】删除失败,失败原因:[{}]", transactionId, reason);
             }
         } else {
             updateResult.setUpdateCount(1);
@@ -137,7 +135,7 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public EsResult deleteByIndex(EsConstruct esConstruct) throws Exception {
+    public static EsResult deleteByIndex(EsConstruct esConstruct) throws Exception {
         String transactionId = esConstruct.getTransactionId();
         Integer clientId = esConstruct.getClientId();
         List<String> indexList = esConstruct.getIndexList();
@@ -156,22 +154,22 @@ public class EsUtils {
                 index = java.net.URLEncoder.encode(index, "UTF-8");
             }
             if (StringUtils.contains(index, "*")) {
-                EsCharUtils.error("[" + transactionId + "]【删除索引】索引[{}]不能删除", index);
+                EsCharUtils.error("[{}]【删除索引】索引[{}]不能删除", transactionId, index);
                 continue;
             }
             try {
                 tempEsConstruct.setIndexList(Arrays.asList(index));
                 boolean exist = checkIndexExist(tempEsConstruct);
                 if (!exist) {
-                    EsCharUtils.error("[" + transactionId + "]【删除索引】索引 [{}] 不存在", index);
+                    EsCharUtils.error("[{}]【删除索引】索引 [{}] 不存在", transactionId, index);
                     continue;
                 }
                 Response delete = restClient.performRequest("DELETE", "/" + index);
-                if (StringUtils.equals(delete.getStatusLine().getReasonPhrase(), "OK")) {
+                if (StringUtils.equals(delete.getStatusLine().getReasonPhrase(), HTTP_STATUS_SUCCESS)) {
                     updateCount++;
                 }
             } catch (Exception e) {
-                EsCharUtils.error("[" + transactionId + "]【删除索引】删除索引[{}]失败", JSON.toJSONString(e));
+                EsCharUtils.error("[{}]【删除索引】删除索引[{}]失败", transactionId, JSON.toJSONString(e));
                 throw e;
             }
         }
@@ -186,14 +184,14 @@ public class EsUtils {
      * @param esConstruct
      * @return
      */
-    public EsResult deleteByQuery(EsConstruct esConstruct) throws Exception {
+    public static EsResult deleteByQuery(EsConstruct esConstruct) throws Exception {
         String transactionId = esConstruct.getTransactionId();
         EsResult updateResult = new EsResult();
         Integer clientId = esConstruct.getClientId();
         List<String> indexList = esConstruct.getIndexList();
         String type = esConstruct.getIndexType();
         if (clientId == null || CollectionUtils.isEmpty(indexList) || StringUtils.isEmpty(type)) {
-            EsCharUtils.error("[" + transactionId + "]【删除数据】缺少必要参数,clientId=[{}],indexList=[{}],type=[{}]", clientId,
+            EsCharUtils.error("[{}]【删除数据】缺少必要参数,clientId=[{}],indexList=[{}],type=[{}]", transactionId, clientId,
                 indexList, type);
             return updateResult;
         }
@@ -205,13 +203,13 @@ public class EsUtils {
                 index = java.net.URLEncoder.encode(index, "UTF-8");
             }
             if (StringUtils.isEmpty(index) || index.contains("*")) {
-                EsCharUtils.error("[" + transactionId + "]【删除数据】要删除的索引不合法,index=[{}]", index);
+                EsCharUtils.error("[{}]【删除数据】要删除的索引不合法,index=[{}]", transactionId, index);
                 return updateResult;
             }
             indexs.append("," + index);
         }
         // 匹配的数据总量
-        EsResult searchResult = new EsUtils().getCount(esConstruct);
+        EsResult searchResult = getCount(esConstruct);
         updateResult.setUpdateCount(searchResult.getTotalHits());
         String indexStr = indexs.toString().substring(1);
         String endPoint = "/" + indexStr + "/" + type + "/_delete_by_query";
@@ -222,13 +220,13 @@ public class EsUtils {
             RestClient restClient = EsClientPool.getRestClient(clientId);
             Response response =
                 restClient.performRequest("POST", endPoint, Collections.<String, String>emptyMap(), entity);
-            if (StringUtils.equals(response.getStatusLine().getReasonPhrase(), "OK")) {
+            if (StringUtils.equals(response.getStatusLine().getReasonPhrase(), HTTP_STATUS_SUCCESS)) {
                 updateResult.setSuccess(true);
             } else {
                 updateResult.setSuccess(false);
             }
         } catch (Exception e) {
-            EsCharUtils.error("[" + transactionId + "]【删除数据】出现未知异常 [{}]", JSON.toJSONString(e));
+            EsCharUtils.error("[{}]【删除数据】出现未知异常 [{}]", transactionId, JSON.toJSONString(e));
             throw e;
         }
         return updateResult;
@@ -240,7 +238,7 @@ public class EsUtils {
      * @param esConstruct
      * @return
      */
-    public EsResult getAggregations(EsConstruct esConstruct) throws Exception {
+    public static EsResult getAggregations(EsConstruct esConstruct) throws Exception {
         SearchRequest searchRequest = EsConstructUtils.createSearchRequest(esConstruct);
         // 执行查询
         SearchResponse searchResponse = EsClientPool.getRestHighClient(esConstruct.getClientId()).search(searchRequest);
@@ -303,7 +301,7 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public EsResult getCount(EsConstruct esConstruct) throws Exception {
+    public static EsResult getCount(EsConstruct esConstruct) throws Exception {
         esConstruct.setEsPage(1);
         esConstruct.setPageSize(0);
         SearchRequest searchRequest = EsConstructUtils.createSearchRequest(esConstruct);
@@ -320,7 +318,7 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public EsResult getList(EsConstruct esConstruct) throws Exception {
+    public static EsResult getList(EsConstruct esConstruct) throws Exception {
         SearchRequest searchRequest = EsConstructUtils.createSearchRequest(esConstruct);
         SearchResponse searchResponse = EsClientPool.getRestHighClient(esConstruct.getClientId()).search(searchRequest);
         EsResult searchResult = EsConstructUtils.createSearchResult(searchResponse, esConstruct, searchRequest);
@@ -334,7 +332,7 @@ public class EsUtils {
      * @param esConstruct
      * @return
      */
-    public EsResult getScroll(EsConstruct esConstruct) throws Exception {
+    public static EsResult getScroll(EsConstruct esConstruct) throws Exception {
         String transactionId = esConstruct.getTransactionId();
         int scrollSize = esConstruct.getScrollSize();
         esConstruct.setPageSize(EsConstant.ES_SCROLL_DEFAULT_SIZE);
@@ -351,8 +349,8 @@ public class EsUtils {
         while (searchHits != null && searchHits.length > 0) {
             // 记录查询耗时
             long endTime = System.currentTimeMillis();
-            EsCharUtils.info("[" + transactionId + "]【查询游标】查询过程,size=[{}],took=[{}],responseTime=[{}]",
-                resultList.size(), searchResponse.getTookInMillis(), (endTime - startTime));
+            EsCharUtils.info("[{}]【查询游标】查询过程,size=[{}],took=[{}],responseTime=[{}]", transactionId, resultList.size(),
+                searchResponse.getTookInMillis(), (endTime - startTime));
             toolTime = toolTime + searchResponse.getTookInMillis();
             resultList.addAll(EsConstructUtils.createResultList(searchResponse));
             if (scrollSize != 0 && resultList.size() > scrollSize) {
@@ -371,14 +369,14 @@ public class EsUtils {
         ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
         clearScrollRequest.addScrollId(searchResponse.getScrollId());
         EsClientPool.getRestHighClient(esConstruct.getClientId()).clearScroll(clearScrollRequest);
-        EsCharUtils.info("[" + transactionId + "]【查询游标】游标清理完成");
+        EsCharUtils.info("[{}]【查询游标】游标清理完成", transactionId);
         // 返回结果
         EsResult searchResult = EsConstructUtils.createSearchResult(searchResponse, esConstruct, searchRequest);
         // 查询耗时
         searchResult.setTookTime(toolTime);
         // 返回数据
         searchResult.setResultList(resultList);
-        EsCharUtils.info("[" + transactionId + "]【查询游标】游标查询结果,[{}]", searchResult.printInfo());
+        EsCharUtils.info("[" + transactionId + "]【查询游标】游标查询结果,[{}]", transactionId, searchResult.printInfo());
         return searchResult;
     }
 
@@ -389,12 +387,12 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public boolean update(EsConstruct esConstruct) throws Exception {
+    public static boolean update(EsConstruct esConstruct) throws Exception {
         String transactionId = esConstruct.getTransactionId();
         List<WriteRequest> docList = esConstruct.getDocList();
         Integer clientId = esConstruct.getClientId();
         if (CollectionUtils.isEmpty(docList) || clientId == null) {
-            EsCharUtils.error("[" + transactionId + "]【更新】更新列表为空 docList.size=0");
+            EsCharUtils.error("[{}]【更新】更新列表为空 docList.size=0", transactionId);
             return true;
         }
         BulkRequest request = new BulkRequest();
@@ -430,11 +428,11 @@ public class EsUtils {
         String failureJson = JSON.toJSONString(failureList);
         long tookInMillis = response.getTookInMillis();
         boolean hasFailures = response.hasFailures();
-        EsCharUtils.info("[" + transactionId
-            + "]【更新】操作完成,insertCount=[{}],updateCount=[{}],deleteCount=[{}],TookInMillis=[{}ms],Refresh=[{}],searchEngineType=[{}]",
-            insertCount, updateCount, deleteCount, tookInMillis, esConstruct.isRefresh(), clientId);
+        EsCharUtils.info(
+            "[{}]【更新】操作完成,insertCount=[{}],updateCount=[{}],deleteCount=[{}],TookInMillis=[{}ms],Refresh=[{}],searchEngineType=[{}]",
+            transactionId, insertCount, updateCount, deleteCount, tookInMillis, esConstruct.isRefresh(), clientId);
         if (hasFailures) {
-            EsCharUtils.error("[" + transactionId + "]【更新】发现异常,hasFailures=[{}],failureJson=[{}]", hasFailures,
+            EsCharUtils.error("[{}]【更新】发现异常,hasFailures=[{}],failureJson=[{}]", transactionId, hasFailures,
                 failureJson);
         }
         return !response.hasFailures();
@@ -448,7 +446,7 @@ public class EsUtils {
      * @return
      * @throws Exception
      */
-    public BulkProcessor.Builder updateAsync(EsConstruct esConstruct, BulkProcessor.Listener listener)
+    public static BulkProcessor.Builder updateByAsync(EsConstruct esConstruct, BulkProcessor.Listener listener)
         throws Exception {
         Integer clientId = esConstruct.getClientId();
         ThreadPool threadPool = new ThreadPool(Settings.builder().build());

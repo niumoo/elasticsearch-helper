@@ -1,8 +1,5 @@
 package com.codingme.eshelper.utils;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -15,31 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  * @Date 2019/4/10 14:55
  */
 @Slf4j
-public class EsCharUtils {
-
-    private static final String HTML_SPACE = "&nbsp;";
-    private static final Pattern PATTERN_HTML = Pattern.compile("<[^>]+>", Pattern.CASE_INSENSITIVE);
-
-    /**
-     * 清理HTML标签
-     *
-     * @param con
-     * @return
-     */
-    public static String clearHtml(String con) {
-        if (StringUtils.isEmpty(con)) {
-            return con;
-        }
-        con = con.replace(HTML_SPACE, StringUtils.EMPTY);
-        Matcher mHtml = PATTERN_HTML.matcher(con);
-        con = mHtml.replaceAll("");
-        int k = con.indexOf("&nbsp;");
-        while (k == 0) {
-            con = con.substring(6);
-            k = con.indexOf("&nbsp;");
-        }
-        return con;
-    }
+public class EsLogUtils {
 
     /**
      * 去除JSON 中的换行以及多余空格

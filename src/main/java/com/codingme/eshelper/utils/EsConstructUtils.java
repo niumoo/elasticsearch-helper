@@ -82,8 +82,8 @@ public class EsConstructUtils {
         searchRequest.searchType(SearchType.QUERY_THEN_FETCH);
         String transactionId = esConstruct.getTransactionId();
         long endTime = System.currentTimeMillis();
-        EsCharUtils.info("[" + transactionId + "]【查询语句】query=[{}],usedTime=[{}]",
-            EsCharUtils.compressJson(searchRequest.source().toString()), endTime - startTime);
+        EsLogUtils.info("[" + transactionId + "]【查询语句】query=[{}],usedTime=[{}]",
+            EsLogUtils.compressJson(searchRequest.source().toString()), endTime - startTime);
         return searchRequest;
     }
 
@@ -117,10 +117,10 @@ public class EsConstructUtils {
         // 返回数据
         searchResult.setResultList(resultList);
         // 返回query
-        searchResult.setSearchQuery(EsCharUtils.compressJson(searchRequest.source().toString()));
+        searchResult.setSearchQuery(EsLogUtils.compressJson(searchRequest.source().toString()));
         String transactionId = esConstruct.getTransactionId();
         long endTime = System.currentTimeMillis();
-        EsCharUtils.info("[" + transactionId + "]【查询结果】[{}],usedTime=[{}]", searchResult.printInfo(),
+        EsLogUtils.info("[" + transactionId + "]【查询结果】[{}],usedTime=[{}]", searchResult.printInfo(),
             endTime - startTime);
         return searchResult;
     }

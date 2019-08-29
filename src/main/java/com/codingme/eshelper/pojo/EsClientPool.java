@@ -14,7 +14,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 
 import com.alibaba.fastjson.JSON;
 import com.codingme.eshelper.constant.EsConstant;
-import com.codingme.eshelper.utils.EsCharUtils;
+import com.codingme.eshelper.utils.EsLogUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +54,7 @@ public class EsClientPool {
 
     public static RestClient getRestClient(Integer clientId) throws Exception {
         if (!restClientMap.containsKey(clientId)) {
-            EsCharUtils.error("【REST连接客户端】当前连接池中不存在这个连接状态,clientId=[{}],当前的连接:[{}]", clientId,
+            EsLogUtils.error("【REST连接客户端】当前连接池中不存在这个连接状态,clientId=[{}],当前的连接:[{}]", clientId,
                 JSON.toJSONString(restClientMap.keySet()));
         }
         return restClientMap.get(clientId);
@@ -62,7 +62,7 @@ public class EsClientPool {
 
     public static RestHighLevelClient getRestHighClient(Integer clientId) throws Exception {
         if (!contains(clientId)) {
-            EsCharUtils.error("【高级连接客户端】当前连接池中不存在这个连接状态,clientId=[{}],当前的连接:[{}]", clientId,
+            EsLogUtils.error("【高级连接客户端】当前连接池中不存在这个连接状态,clientId=[{}],当前的连接:[{}]", clientId,
                 JSON.toJSONString(restHighLevelClientMap.keySet()));
         }
         return restHighLevelClientMap.get(clientId);
@@ -88,7 +88,7 @@ public class EsClientPool {
         Integer maxConnTotal, Integer connTimeOut, Integer socketTimeOut) throws Exception {
         if (!restHighLevelClientMap.containsKey(clientId)) {
             if (StringUtils.isEmpty(host)) {
-                EsCharUtils.error("【连接客户端】初始化出错,host is empty");
+                EsLogUtils.error("【连接客户端】初始化出错,host is empty");
                 return null;
             }
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -100,15 +100,15 @@ public class EsClientPool {
                     .setConnectionRequestTimeout(0);
                 return requestConfigBuilder;
             });
-            RestClient restClient = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
+            RestClientBuilder restClient = restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> {
                 httpClientBuilder.setMaxConnPerRoute(maxConnPerRoute == null ? MAX_CONN_PRE_ROUTE : maxConnPerRoute);
                 httpClientBuilder.setMaxConnTotal(maxConnTotal == null ? MAX_CONN_TOTAL : maxConnTotal);
                 return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            }).setMaxRetryTimeoutMillis(socketTimeOut == null ? RETRY_TIME_OUT : socketTimeOut).build();
-            RestHighLevelClient highLevelClient = new RestHighLevelClient(restClient);
+            }).setMaxRetryTimeoutMillis(socketTimeOut == null ? RETRY_TIME_OUT : socketTimeOut);
+            RestHighLevelClient highLevelClient = new RestHighLevelClient(restClient.build());
             restHighLevelClientMap.put(clientId, highLevelClient);
-            restClientMap.put(clientId, restClient);
-            EsCharUtils.info("【连接客户端】初始化完毕,clientId=" + clientId + ",address=[{}],port=[{}]", httpHost.getHostName(),
+            restClientMap.put(clientId, restClient.build());
+            EsLogUtils.info("【连接客户端】初始化完毕,clientId=" + clientId + ",address=[{}],port=[{}]", httpHost.getHostName(),
                 httpHost.getPort());
         }
         return restHighLevelClientMap.get(clientId);
@@ -128,13 +128,13 @@ public class EsClientPool {
                 try {
                     restClient.close();
                 } catch (Exception e) {
-                    EsCharUtils.error("在关闭连接客户端时出错");
+                    EsLogUtils.error("在关闭连接客户端时出错");
                     e.printStackTrace();
                 }
             }
             restClientMap.clear();
             restHighLevelClientMap.clear();
-            EsCharUtils.info("【连接客户端】清理完毕!");
+            EsLogUtils.info("【连接客户端】清理完毕!");
         }
     }
 

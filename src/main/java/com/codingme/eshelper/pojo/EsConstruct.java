@@ -1,7 +1,7 @@
 package com.codingme.eshelper.pojo;
 
 import com.codingme.eshelper.constant.EsConstant;
-import com.codingme.eshelper.utils.EsCharUtils;
+import com.codingme.eshelper.utils.EsLogUtils;
 import com.codingme.eshelper.utils.EsConstructUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -414,7 +414,7 @@ public class EsConstruct {
      */
     public EsConstruct sort(String field, boolean desc) {
         if (StringUtils.isEmpty(field)) {
-            EsCharUtils.error("【设置排序】排序字段为空");
+            EsLogUtils.error("【设置排序】排序字段为空");
             return this;
         }
         this.sortBuilder = new FieldSortBuilder(field);

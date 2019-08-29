@@ -94,7 +94,7 @@ public class EsUtils {
         EsResult updateResult = new EsResult();
         if (clientId == null || CollectionUtils.isEmpty(indexList) || StringUtils.isEmpty(type)
             || StringUtils.isEmpty(id)) {
-            EsCharUtils.error("[{}]【删除】删除失败,要删除的文档信息不完整,index=[{}],type=[{}],id=[{}]", transactionId, indexList, type,
+            EsLogUtils.error("[{}]【删除】删除失败,要删除的文档信息不完整,index=[{}],type=[{}],id=[{}]", transactionId, indexList, type,
                 id);
             return updateResult;
         }
@@ -106,20 +106,20 @@ public class EsUtils {
         DeleteResponse deleteResponse = EsClientPool.getRestHighClient(clientId).delete(request);
         // 删除结果处理
         if (deleteResponse.getResult() == DocWriteResponse.Result.NOT_FOUND) {
-            EsCharUtils.error("[{}]【删除】删除失败,文档未找到,index=[{}],type=[{}],id=[{}]", transactionId, index, type, id);
+            EsLogUtils.error("[{}]【删除】删除失败,文档未找到,index=[{}],type=[{}],id=[{}]", transactionId, index, type, id);
             return updateResult;
         }
         ReplicationResponse.ShardInfo shardInfo = deleteResponse.getShardInfo();
         if (shardInfo.getTotal() != shardInfo.getSuccessful()) {
-            EsCharUtils.error("[{}]【删除】删除失败,分片总量:[{}],成功删除分片总量:[{}]", transactionId, shardInfo.getTotal(),
+            EsLogUtils.error("[{}]【删除】删除失败,分片总量:[{}],成功删除分片总量:[{}]", transactionId, shardInfo.getTotal(),
                 shardInfo.getSuccessful());
             return updateResult;
         }
         if (shardInfo.getFailed() > 0) {
-            EsCharUtils.error("[{}]【删除】删除失败,要删除的文档,index=[{}],type=[{}],id=[{}]", transactionId, index, type, id);
+            EsLogUtils.error("[{}]【删除】删除失败,要删除的文档,index=[{}],type=[{}],id=[{}]", transactionId, index, type, id);
             for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
                 String reason = failure.reason();
-                EsCharUtils.error("[{}]【删除】删除失败,失败原因:[{}]", transactionId, reason);
+                EsLogUtils.error("[{}]【删除】删除失败,失败原因:[{}]", transactionId, reason);
             }
         } else {
             updateResult.setUpdateCount(1);
@@ -154,14 +154,14 @@ public class EsUtils {
                 index = java.net.URLEncoder.encode(index, "UTF-8");
             }
             if (StringUtils.contains(index, "*")) {
-                EsCharUtils.error("[{}]【删除索引】索引[{}]不能删除", transactionId, index);
+                EsLogUtils.error("[{}]【删除索引】索引[{}]不能删除", transactionId, index);
                 continue;
             }
             try {
                 tempEsConstruct.setIndexList(Arrays.asList(index));
                 boolean exist = checkIndexExist(tempEsConstruct);
                 if (!exist) {
-                    EsCharUtils.error("[{}]【删除索引】索引 [{}] 不存在", transactionId, index);
+                    EsLogUtils.error("[{}]【删除索引】索引 [{}] 不存在", transactionId, index);
                     continue;
                 }
                 Response delete = restClient.performRequest("DELETE", "/" + index);
@@ -169,7 +169,7 @@ public class EsUtils {
                     updateCount++;
                 }
             } catch (Exception e) {
-                EsCharUtils.error("[{}]【删除索引】删除索引[{}]失败", transactionId, JSON.toJSONString(e));
+                EsLogUtils.error("[{}]【删除索引】删除索引[{}]失败", transactionId, JSON.toJSONString(e));
                 throw e;
             }
         }
@@ -191,7 +191,7 @@ public class EsUtils {
         List<String> indexList = esConstruct.getIndexList();
         String type = esConstruct.getIndexType();
         if (clientId == null || CollectionUtils.isEmpty(indexList) || StringUtils.isEmpty(type)) {
-            EsCharUtils.error("[{}]【删除数据】缺少必要参数,clientId=[{}],indexList=[{}],type=[{}]", transactionId, clientId,
+            EsLogUtils.error("[{}]【删除数据】缺少必要参数,clientId=[{}],indexList=[{}],type=[{}]", transactionId, clientId,
                 indexList, type);
             return updateResult;
         }
@@ -203,7 +203,7 @@ public class EsUtils {
                 index = java.net.URLEncoder.encode(index, "UTF-8");
             }
             if (StringUtils.isEmpty(index) || index.contains("*")) {
-                EsCharUtils.error("[{}]【删除数据】要删除的索引不合法,index=[{}]", transactionId, index);
+                EsLogUtils.error("[{}]【删除数据】要删除的索引不合法,index=[{}]", transactionId, index);
                 return updateResult;
             }
             indexs.append("," + index);
@@ -226,7 +226,7 @@ public class EsUtils {
                 updateResult.setSuccess(false);
             }
         } catch (Exception e) {
-            EsCharUtils.error("[{}]【删除数据】出现未知异常 [{}]", transactionId, JSON.toJSONString(e));
+            EsLogUtils.error("[{}]【删除数据】出现未知异常 [{}]", transactionId, JSON.toJSONString(e));
             throw e;
         }
         return updateResult;
@@ -349,7 +349,7 @@ public class EsUtils {
         while (searchHits != null && searchHits.length > 0) {
             // 记录查询耗时
             long endTime = System.currentTimeMillis();
-            EsCharUtils.info("[{}]【查询游标】查询过程,size=[{}],took=[{}],responseTime=[{}]", transactionId, resultList.size(),
+            EsLogUtils.info("[{}]【查询游标】查询过程,size=[{}],took=[{}],responseTime=[{}]", transactionId, resultList.size(),
                 searchResponse.getTookInMillis(), (endTime - startTime));
             toolTime = toolTime + searchResponse.getTookInMillis();
             resultList.addAll(EsConstructUtils.createResultList(searchResponse));
@@ -369,14 +369,14 @@ public class EsUtils {
         ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
         clearScrollRequest.addScrollId(searchResponse.getScrollId());
         EsClientPool.getRestHighClient(esConstruct.getClientId()).clearScroll(clearScrollRequest);
-        EsCharUtils.info("[{}]【查询游标】游标清理完成", transactionId);
+        EsLogUtils.info("[{}]【查询游标】游标清理完成", transactionId);
         // 返回结果
         EsResult searchResult = EsConstructUtils.createSearchResult(searchResponse, esConstruct, searchRequest);
         // 查询耗时
         searchResult.setTookTime(toolTime);
         // 返回数据
         searchResult.setResultList(resultList);
-        EsCharUtils.info("[" + transactionId + "]【查询游标】游标查询结果,[{}]", transactionId, searchResult.printInfo());
+        EsLogUtils.info("[" + transactionId + "]【查询游标】游标查询结果,[{}]", transactionId, searchResult.printInfo());
         return searchResult;
     }
 
@@ -392,7 +392,7 @@ public class EsUtils {
         List<WriteRequest> docList = esConstruct.getDocList();
         Integer clientId = esConstruct.getClientId();
         if (CollectionUtils.isEmpty(docList) || clientId == null) {
-            EsCharUtils.error("[{}]【更新】更新列表为空 docList.size=0", transactionId);
+            EsLogUtils.error("[{}]【更新】更新列表为空 docList.size=0", transactionId);
             return true;
         }
         BulkRequest request = new BulkRequest();
@@ -428,11 +428,11 @@ public class EsUtils {
         String failureJson = JSON.toJSONString(failureList);
         long tookInMillis = response.getTookInMillis();
         boolean hasFailures = response.hasFailures();
-        EsCharUtils.info(
+        EsLogUtils.info(
             "[{}]【更新】操作完成,insertCount=[{}],updateCount=[{}],deleteCount=[{}],TookInMillis=[{}ms],Refresh=[{}],searchEngineType=[{}]",
             transactionId, insertCount, updateCount, deleteCount, tookInMillis, esConstruct.isRefresh(), clientId);
         if (hasFailures) {
-            EsCharUtils.error("[{}]【更新】发现异常,hasFailures=[{}],failureJson=[{}]", transactionId, hasFailures,
+            EsLogUtils.error("[{}]【更新】发现异常,hasFailures=[{}],failureJson=[{}]", transactionId, hasFailures,
                 failureJson);
         }
         return !response.hasFailures();

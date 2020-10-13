@@ -20,7 +20,7 @@
         <ikanalyzer.version>2012_u6</ikanalyzer.version>
         <elasticsearch.version>5.6.4</elasticsearch.version>
 <!--        <elasticsearch.version>6.6.0</elasticsearch.version>-->
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
     </properties>
 
     <repositories>
